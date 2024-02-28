@@ -1,9 +1,12 @@
 import { MpSdk } from "@matterport/webcomponent";
-import { CustomCubeComponent } from "./customCubeComponent";
+import { CustomCubeComponent } from "../custom-components/customCubeComponent";
 
+/**
+ * Creates a scene that will allow for custom cubes to be added and reacted to when clicked
+ */
 export class CubeScene {
     private mpSdk: MpSdk;
-    private _sceneObject?: MpSdk.Scene.IObject;
+    private sceneObject?: MpSdk.Scene.IObject;
     private cubes: Record<string, MpSdk.Scene.IComponent>;
     private paths: Record<string, MpSdk.Scene.EmitPath<unknown>>;
 
@@ -13,22 +16,22 @@ export class CubeScene {
         this.paths = {};
     }
 
-    public get sceneObject(): MpSdk.Scene.IObject | undefined {
-        return this._sceneObject;
-    }
-
-    public async init() {
+    public async create() {
+        // This method could be moved to be called in a static method since it's just registering with Matterport
+        // the custom component, only ever needs to be invoked once
         this.registerCustomCubeComponent();
 
         const [ sceneObject ] = await this.mpSdk.Scene.createObjects(1);
-        this._sceneObject = sceneObject;
-        this.addLights()
+        this.sceneObject = sceneObject;
+        this.addLights();
     }
 
     public start(): void {
-        this._sceneObject?.start();
+        this.sceneObject?.start();
     }
 
+    // Didn't want other components to have direct reference to paths, so using an id that client defines when creating the cube to find reference to path
+    // and add a listener for
     public onCubeClicked(cubeId: string, callback: () => void): void {
         const outputSpy = {
             path: this.paths[cubeId],
@@ -36,21 +39,19 @@ export class CubeScene {
                 callback();
             }
         };
-        this._sceneObject!.spyOnEvent(outputSpy)
+        this.sceneObject!.spyOnEvent(outputSpy);
     }
 
     private addLights() {
-        const lights = this._sceneObject!.addNode();
+        const lights = this.sceneObject!.addNode();
         lights.addComponent('mp.lights');
         lights.start();
     }
 
     public addCube(id: string) {
-        console.log('sceneObject', this._sceneObject);
-        const modelNode = this._sceneObject!.addNode();
-        console.log('modelNode', modelNode)
+        const modelNode = this.sceneObject!.addNode();
         const cube = modelNode.addComponent('cube', {visible: true}, id);
-        const outputPath = this._sceneObject!.addEmitPath(cube, 'clicked', id);
+        const outputPath = this.sceneObject!.addEmitPath(cube, 'clicked', id);
         this.cubes[id] = cube;
         this.paths[id] = outputPath;
         modelNode.start();

@@ -1,5 +1,7 @@
 import  { Scene } from "@matterport/webcomponent";
-
+/**
+ * A custom cube component that emits when it was clicked
+ */
 export class CustomCubeComponent {
     public inputs: Record<string, unknown> | undefined;
     public outputs: Record<string, unknown> & Scene.PredefinedOutputs | undefined;
@@ -12,6 +14,7 @@ export class CustomCubeComponent {
     
     public constructor() {
         this.events = {
+            // There is a typed enum for this event but it's not exported?
             ["INTERACTION.CLICK"]: true,
         }
         this.emits = {
