@@ -1,14 +1,24 @@
-import { Scene } from "@matterport/webcomponent";
+import  { Scene } from "@matterport/webcomponent";
 
 export class CustomCubeComponent {
     public inputs: Record<string, unknown> | undefined;
     public outputs: Record<string, unknown> & Scene.PredefinedOutputs | undefined;
     public events: Record<string, boolean> | undefined;
     public context: Scene.IComponentContext | undefined;
+    public emits: Record<string, boolean>;
     private material: THREE.Material | undefined;
 
     public componentType = 'cube';
     
+    public constructor() {
+        this.events = {
+            ["INTERACTION.CLICK"]: true,
+        }
+        this.emits = {
+            clicked: true
+        }
+    }
+
     public onInit(): void {
         var THREE = this.context!.three;
         var geometry = new THREE.BoxGeometry(1, 1, 1);
@@ -17,6 +27,17 @@ export class CustomCubeComponent {
 
         this.outputs!.objectRoot = mesh;   // gets added to the scene node
         this.outputs!.collider = mesh;     // will now be part of raycast testing
+    }
+
+    //stub, will get replaced by Matterport at
+    public notify(eventType: string, eventData?: unknown): void {
+
+    }
+
+    public onEvent(eventType: string) {
+        if (eventType === "INTERACTION.CLICK") {
+            this.notify('clicked');
+        }
     }
 
     public onDestroy(): void {
